@@ -15,6 +15,8 @@ struct XenDevice;
 #define DEVOPS_FLAG_NEED_GNTDEV   1
 /* don't expect frontend doing correct state transitions (aka console quirk) */
 #define DEVOPS_FLAG_IGNORE_STATE  2
+/*dev is frontend device*/
+#define DEVOPS_FLAG_FE            4
 
 struct XenDevOps {
     size_t    size;
@@ -59,6 +61,7 @@ struct XenDevice {
 extern XenXC xen_xc;
 extern struct xs_handle *xenstore;
 extern const char *xen_protocol;
+extern int xenstore_dev;
 
 /* xenstore helper functions */
 int xenstore_write_str(const char *base, const char *node, const char *val);
@@ -77,9 +80,18 @@ int xenstore_read_fe_int(struct XenDevice *xendev, const char *node, int *ival);
 int xenstore_read_uint64(const char *base, const char *node, uint64_t *uval);
 int xenstore_read_fe_uint64(struct XenDevice *xendev, const char *node, uint64_t *uval);
 
+char *xenstore_get_domain_name(uint32_t domid);
+
 const char *xenbus_strstate(enum xenbus_state state);
-struct XenDevice *xen_be_find_xendev(const char *type, int dom, int dev);
+struct XenDevice *xen_find_xendev(const char *type, int dom, int dev);
+struct XenDevice *xen_del_xendev(int dom, int dev);
+struct XenDevice *xen_be_get_xendev(const char *type, int dom, int dev,
+                                    struct XenDevOps *ops);
+struct XenDevice *xen_fe_get_xendev(const char *type, int dom, int dev,
+                                    char *backend, struct XenDevOps *ops);
 void xen_be_check_state(struct XenDevice *xendev);
+void xen_be_backend_changed(struct XenDevice *xendev, const char *node);
+void xen_be_frontend_changed(struct XenDevice *xendev, const char *node);
 
 /* xen backend driver bits */
 int xen_be_init(void);
@@ -90,6 +102,13 @@ void xen_be_unbind_evtchn(struct XenDevice *xendev);
 int xen_be_send_notify(struct XenDevice *xendev);
 void xen_be_printf(struct XenDevice *xendev, int msg_level, const char *fmt, ...)
     GCC_FMT_ATTR(3, 4);
+void xen_fe_printf(struct XenDevice *xendev, int msg_level,
+                   const char *fmt, ...)
+    GCC_FMT_ATTR(3, 4);
+/* Xen frontend driver */
+int xen_fe_register(const char *type, struct XenDevOps *ops);
+int xen_fe_alloc_unbound(struct XenDevice *xendev, int dom, int remote_dom);
+int xenbus_switch_state(struct XenDevice *xendev, enum xenbus_state xbus);
 
 /* actual backend drivers */
 extern struct XenDevOps xen_console_ops;      /* xen_console.c     */
@@ -97,6 +116,7 @@ extern struct XenDevOps xen_kbdmouse_ops;     /* xen_framebuffer.c */
 extern struct XenDevOps xen_framebuffer_ops;  /* xen_framebuffer.c */
 extern struct XenDevOps xen_blkdev_ops;       /* xen_disk.c        */
 extern struct XenDevOps xen_netdev_ops;       /* xen_nic.c         */
+extern struct XenDevOps xen_vtpmdev_ops;      /* xen_vtpm_frontend.c*/
 
 void xen_init_display(int domid);
 
