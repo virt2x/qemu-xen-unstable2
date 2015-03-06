@@ -4114,12 +4114,6 @@ int main(int argc, char **argv, char **envp)
         exit(1);
     }
 
-#ifdef CONFIG_TPM
-    if (tpm_init() < 0) {
-        exit(1);
-    }
-#endif
-
     /* init the bluetooth world */
     if (foreach_device_config(DEV_BT, bt_parse))
         exit(1);
@@ -4224,6 +4218,17 @@ int main(int argc, char **argv, char **envp)
         if (foreach_device_config(DEV_USB, usb_parse) < 0)
             exit(1);
     }
+
+    /*
+     * For compatible with Xen stubdom vTPM driver, make
+     * sure QEMU machine class is initialized and QEMU has
+     * registered Xen stubdom vTPM driver.
+     */
+#ifdef CONFIG_TPM
+    if (tpm_init() < 0) {
+        exit(1);
+    }
+#endif
 
     /* init generic devices */
     if (qemu_opts_foreach(qemu_find_opts("device"), device_init_func, NULL, 1) != 0)
