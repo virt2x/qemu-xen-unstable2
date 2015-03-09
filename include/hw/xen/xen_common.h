@@ -130,6 +130,12 @@ static inline XenXC xen_xc_interface_open(void *logger, void *dombuild_logger,
     return xc_interface_open(logger, dombuild_logger, open_flags);
 }
 
+static inline xc_gntshr *xen_xc_gntshr_open(void *logger,
+                                            unsigned int open_flags)
+{
+    return xc_gntshr_open(logger, open_flags);
+}
+
 /* FIXME There is now way to have the xen fd */
 static inline int xc_fd(xc_interface *xen_xc)
 {

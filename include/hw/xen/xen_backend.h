@@ -110,6 +110,11 @@ int xen_fe_register(const char *type, struct XenDevOps *ops);
 int xen_fe_alloc_unbound(struct XenDevice *xendev, int dom, int remote_dom);
 int xenbus_switch_state(struct XenDevice *xendev, enum xenbus_state xbus);
 
+/* Xen vtpm */
+int vtpm_send(struct XenDevice *xendev, uint8_t* buf, size_t count);
+int vtpm_recv(struct XenDevice *xendev, uint8_t* buf, size_t *count);
+void vtpm_backend_changed(struct XenDevice *xendev, const char *node);
+
 /* actual backend drivers */
 extern struct XenDevOps xen_console_ops;      /* xen_console.c     */
 extern struct XenDevOps xen_kbdmouse_ops;     /* xen_framebuffer.c */

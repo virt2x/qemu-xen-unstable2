@@ -1071,6 +1071,11 @@ int xen_hvm_init(ram_addr_t *below_4g_mem_size, ram_addr_t *above_4g_mem_size,
         fprintf(stderr, "%s: xen backend core setup failed\n", __FUNCTION__);
         return -1;
     }
+
+#ifdef CONFIG_TPM_XENSTUBDOMS
+    xen_fe_register("vtpm", &xen_vtpmdev_ops);
+#endif
+
     xen_be_register("console", &xen_console_ops);
     xen_be_register("vkbd", &xen_kbdmouse_ops);
     xen_be_register("qdisk", &xen_blkdev_ops);

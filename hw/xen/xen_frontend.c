@@ -60,6 +60,26 @@ static void xen_fe_evtchn_event(void *opaque)
 
 /* ------------------------------------------------------------- */
 
+void vtpm_backend_changed(struct XenDevice *xendev, const char *node)
+{
+    int be_state;
+
+    if (strcmp(node, "state") == 0) {
+        xenstore_read_be_int(xendev, node, &be_state);
+        switch (be_state) {
+        case XenbusStateConnected:
+            /* TODO */
+            break;
+        case XenbusStateClosing:
+        case XenbusStateClosed:
+            xenbus_switch_state(xendev, XenbusStateClosing);
+            break;
+        default:
+            break;
+        }
+    }
+}
+
 int xen_fe_alloc_unbound(struct XenDevice *xendev, int dom, int remote_dom)
 {
     xendev->local_port = xc_evtchn_bind_unbound_port(xendev->evtchndev,
